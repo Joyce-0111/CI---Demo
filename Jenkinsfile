@@ -1,64 +1,52 @@
 pipeline {
     agent any
-
-    environment {
-        DOCKER_IMAGE = "myapp:latest"
-        CONTAINER_NAME = "myapp-container"
+    tools {
+        maven 'Maven'   // Name of Maven installation in Jenkins
+        jdk 'Java'      // Name of JDK in Jenkins
     }
-
     stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/Joyce-0111/CI---Demo'
+            }
+        }
         stage('Build') {
             steps {
-                script {
-                    echo "Building Maven project..."
-                    bat 'mvn clean compile'
-                }
+                bat 'mvn clean compile'
             }
         }
-
         stage('Test') {
             steps {
-                script {
-                    echo "Running tests..."
-                    bat 'mvn test'
+                bat 'mvn test'
+            }
+            post {
+                always {
+                    junit '**\\target\\surefire-reports\\*.xml'
                 }
             }
         }
-
+        stage('Code Coverage') {
+            steps {
+                bat 'mvn jacoco:report'
+            }
+            post {
+                always {
+                    jacoco execPattern: '**\\target\\jacoco.exec'
+                }
+            }
+        }
         stage('Package') {
             steps {
-                script {
-                    echo "Packaging JAR..."
-                    bat 'mvn package'
-                }
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    echo "Building Docker image..."
-                    bat 'docker build -t %DOCKER_IMAGE% .'
-                }
-            }
-        }
-
-        stage('Deploy Container') {
-            steps {
-                script {
-                    echo "Deploying container..."
-                    bat '''
-                        docker rm -f %CONTAINER_NAME% || echo "No existing container"
-                        docker run -d -p 9090:8080 --name %CONTAINER_NAME% %DOCKER_IMAGE%
-                    '''
-                }
+                bat 'mvn package'
             }
         }
     }
-
     post {
-        always {
-            echo "Pipeline finished."
+        success {
+            echo 'Build, Test, Coverage, and Package completed successfully!'
+        }
+        failure {
+            echo 'Something went wrong. Check the console output.'
         }
     }
 }
