@@ -2,7 +2,7 @@ pipeline {
     agent any
     tools {
         maven 'Maven3'   // Name in Jenkins for Maven (pointing to C:\Program Files\apache-maven-3.9.14)
-        jdk 'JDK21'      // Name in Jenkins for JDK (pointing to C:\Program Files\Java\jdk-21.0.10)
+        jdk 'JDK11'      // Name in Jenkins for JDK (pointing to C:\Program Files\Java\jdk-21.0.10)
     }
     stages {
         stage('Checkout') {
